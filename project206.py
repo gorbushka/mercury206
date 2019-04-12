@@ -8,6 +8,7 @@ import time
 import sys
 import struct
 from struct import pack, unpack
+import traceback
 #from minimalmodbus import _calculateCrcString as modbus_crc
 
 def upper_hex(byte):
@@ -81,9 +82,7 @@ def pack_msg(address,command):
         pad_len = len(address) % 4
         data = '\x00' * pad_len + address
     data += pack('B', command)
-    print(pretty_hex(data)) 
     msg = crc16(data)
-    print(pretty_hex(msg)) 
     return msg 
 
 def unpack_msg(message):
@@ -98,15 +97,16 @@ def unpack_msg(message):
     (10925856, [])
     """
     address = unpack(ADDRESS_FMT, message[:4])[0]
-    data = [unpack('B', c)[0] for c in message[4:]]
+    data = [unpack('B', bytes({c}))[0] for c in message[4:]]
     return address, data
 
 
 class Counter_m206:
-    def __init__ (self, host,port,timeout=5):
+    def __init__ (self, host,port,timeout=10, debug=False):
         self.port=port
         self.host=host
         self.timeout=timeout
+        self.debug = debug
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.host, self.port))
 
@@ -117,38 +117,71 @@ class Counter_m206:
     def readSocket(self, addr,msg):
         self.socket.sendall(pack_msg(addr,msg))
         buffer = ''
-        _data  = ''
+        raw_buffer = []
+        _data  = b''
         decoded = ''
         try:
             while True:
-                self.socket.settimeout(self.timeout) 
-                _data = self.socket.recv(1)
-                if _data:
-                    buffer += self.decode(_data)
-                    if len(buffer)>10:
-                        break
-                    #buffer += decoded
-            print ('<< response', pretty_hex(buffer),buffer)
-                    #decoded = unpack_msg(_data)
-                    #buffer += decoded
+                """Признаком конца пакета служит отсутствие передачи на линии в течение  времени, 
+                    необходимого  для передачи 5-6 байт, после окончания передачи стоп-бита последнего байта.
+                    https://www.incotexcom.ru/files/em/docs/mercury-protocol-obmena-1.pdf"""
+                try:
+                    self.socket.settimeout(5) 
+                    _data = self.socket.recv(1)
+                    if _data:
+                        raw_buffer.append(_data)
+                        if self.debug:
+                            print ('<< response', pretty_hex(_data),_data)
+                        buffer += self.decode(_data)
+                except:
+                    break
+            if self.debug:
+                print ('<< response', pretty_hex(buffer),buffer)
+            devaddr, decoded = unpack_msg(b''.join(raw_buffer))
+
         except Exception as error:
             print('Read data error:', error)
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            tbe = traceback.TracebackException(
+                exc_type, exc_value, exc_tb,
+            )
+            print(''.join(tbe.format()))
+
+            print('\nexception only:')
+            print(''.join(tbe.format_exception_only()))
     
         self.socket.settimeout(None)
         return decoded
+   
+    def display_counter_val(self, addr, cmd=0x27):
+        """Энергия по тарифам"""
+        data = self.readSocket( addr, cmd)
+        return digitized_triple(data)
+
+    def display_counter_vip(self, addr, cmd=0x63):
+        """V I P"""
+        data = self.readSocket( addr, cmd)
+        voltage = digitize(data[1:3]) / 10.
+        current = digitize(data[3:5]) / 100.
+        power = digitize(data[5:8]) / 1000.
+        return [voltage, current, power]
+        
 
 
 PORT = 5050
 HOST = '10.137.146.41' # '10.137.154.143'
 TIMEOUT = 10
 ADDRESS = '38030255' #'000013'
-PARAM=0x2f
+PARAM=0x63
 
 
 
 sock=Counter_m206(HOST,PORT,TIMEOUT)
 
-ret=sock.readSocket(ADDRESS,PARAM)
+ret=sock.display_counter_val(ADDRESS)
+
+v,i,p=sock.display_counter_vip(ADDRESS)
 
 print(ret)
+print("{}V {}A {}kWh ".format(v,i,p))
          
