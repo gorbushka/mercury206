@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # coding: utf-8
 # fork https://github.com/n0l/Mercury_remote/blob/master/get_data_python3.py
+# fork https://github.com/sergray/energy-meter-mercury206
+# protocol https://www.incotexcom.ru/files/em/docs/mercury-protocol-obmena-1.pdf
 # Semikin@powernet 2019
 import re
 import socket
