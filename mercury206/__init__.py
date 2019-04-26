@@ -19,8 +19,11 @@ class Counter_m206:
         self.host=host
         self.timeout=timeout
         self.debug = debug
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect((self.host, self.port))
+        try:
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket.connect((self.host, self.port))
+        except Exception as error:
+            print("Error", error, "CHECK IP")
         self.ADDRESS_FMT = '!I'
 
     def upper_hex(self, byte):

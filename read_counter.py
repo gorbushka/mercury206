@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # coding: utf-8
 # fork https://github.com/n0l/Mercury_remote/blob/master/get_data_python3.py
 # fork https://github.com/sergray/energy-meter-mercury206
@@ -23,5 +23,5 @@ ret=sock.display_counter_val(ADDRESS)
 v,i,p=sock.display_counter_vip(ADDRESS)
 
 print(ret)
-print("{}V {}A {}kWh ".format(v,i,p))
+print("{}V {}A {}kW ".format(v,i,p))
          
