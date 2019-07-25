@@ -9,10 +9,10 @@ sys.path.append('/home/gorbushka/mercury/m206/mercury206')
 from mercury206 import Counter_m206
 
 
-PORT = 5050
-HOST = '172.17.119.64' # '10.137.154.143'
+PORT = 4001
+HOST = '10.99.167.237' # '10.137.154.143'
 TIMEOUT = 10
-ADDRESS = '38030255' #'000013'
+ADDRESS = '38030290' #'000013''38030255' 
 
 
 

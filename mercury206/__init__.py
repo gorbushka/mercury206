@@ -23,7 +23,7 @@ class Counter_m206:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.connect((self.host, self.port))
         except Exception as error:
-            print("Error", error, "CHECK IP")
+            print("Error", error, "CHECK IP or PORT")
         self.ADDRESS_FMT = '!I'
 
     def upper_hex(self, byte):
