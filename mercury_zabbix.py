@@ -16,6 +16,7 @@ oarray=[]
 conf_counter=[{'ip':'172.17.119.64','port':5050,'counters':['38030255']},
               {'ip':'10.99.167.237','port':4001,'counters':['38030290']}
               ]
+              
 def zabbix_packet(array):
     packet=[]
     for item in array:
